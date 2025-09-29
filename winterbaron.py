@@ -19,18 +19,18 @@ dp = Dispatcher()
 async def start(message: Message):
     await message.answer("Бот для тейков💥💥")
 
-# 📌 Користувач пише у приват
+# Користувач пише в бот
 @dp.message(lambda msg: msg.chat.type == "private")
 async def user_message(message: Message):
     sent = await bot.send_message(
         GROUP_ID,
-        f" {message.from_user.full_name} (id:{message.from_user.id}):\n{message.text}"
+        f" {message.from_user.full_name} \n{message.text}"
     )
     # Прив’язуємо повідомлення у групі до користувача
     bridge[sent.message_id] = message.from_user.id
     #await message.answer("✅ Повідомлення переслано адміну")
 
-# 📌 Адмін відповідає у групі на повідомлення користувача
+# Адмін відповідає у групі на повідомлення користувача
 @dp.message(lambda msg: msg.chat.id == GROUP_ID and msg.reply_to_message)
 async def group_reply(message: Message):
     replied_id = message.reply_to_message.message_id
@@ -40,14 +40,14 @@ async def group_reply(message: Message):
             user_id,
             f"{message.text}"
         )
-    else:
-        await message.reply("⚠ Не знайдено користувача для цієї відповіді.")
+    #else:
+        #await message.reply("⚠ Не знайдено користувача для цієї відповіді.")
 
-# 📌 Запуск
+# Запуск
 async def main():
     await dp.start_polling(bot)
 
-# 🔹 Spyder/Jupyter-friendly запуск
+# Spyder запуск
 if __name__ == "__main__":
     try:
         loop = asyncio.get_running_loop()
