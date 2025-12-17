@@ -4,6 +4,22 @@ import nest_asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
+BANNED_FILE = "banned.txt"
+
+def load_banned():
+    if not os.path.exists(BANNED_FILE):
+        return set()
+    with open(BANNED_FILE, "r", encoding="utf-8") as f:
+        return set(int(line.strip()) for line in f if line.strip())
+
+def save_banned(banned):
+    with open(BANNED_FILE, "w", encoding="utf-8") as f:
+        for uid in banned:
+            f.write(f"{uid}\n")
+
+banned_users = load_banned()
+
+
 #  Налаштування
 TOKEN = os.getenv("TOKEN") or "8422502818:AAE3iEbsck7e67HmJKVsHRMFvtnShFahbxQ"
 GROUP_ID = int(os.getenv("GROUP_ID") or -4867326536)
@@ -82,6 +98,26 @@ async def group_reply(message: types.Message):
         await bot.send_video_note(user_id, message.video_note.file_id)
     else:
         await message.reply("❗️")
+        
+@dp.message(lambda msg: msg.chat.id == GROUP_ID and msg.text == "/ban" and msg.reply_to_message)
+async def ban_user(message: types.Message):
+    replied_id = message.reply_to_message.message_id
+
+    if replied_id not in bridge:
+        await message.reply("❗️Це повідомлення не від користувача.")
+        return
+
+    user_id = bridge[replied_id]
+
+    if user_id in banned_users:
+        await message.reply("⚠️ Користувач уже забанений.")
+        return
+
+    banned_users.add(user_id)
+    save_banned(banned_users)
+
+    await bot.send_message(user_id, "🚫 Вас заблоковано адміністратором.")
+    await message.reply("✅ Користувача забанено.")
 
 
 # Запуск
